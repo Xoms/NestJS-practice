@@ -1,1 +1,27 @@
 GET http://localhost:3000/news
+
+###
+
+GET http://localhost:3000/news/1
+
+### 
+
+POST http://localhost:3000/news
+Content-Type: application/json
+
+{
+    "id": 3,
+    "title": "test",
+    "description": "testDescription"
+}
+// After this request we can send get() for check
+
+###
+
+PATCH http://localhost:3000/news/3
+Content-Type: application/json
+
+{
+    "title": "testUpdate"
+}
+
