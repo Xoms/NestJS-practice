@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import INews from './news.interface';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { INews } from './news.interface';
+import { CreateNewsDto, UpdateNewsDto } from './dto';
 
 //let - for update
 let mockNews = [
@@ -19,20 +20,38 @@ let mockNews = [
 
 @Injectable()
 export class NewsService {
+  //helper
+  async findById(_id: number): Promise<INews> {
+    const news = mockNews.find(({ id }) => id === _id);
+    if (!news) {
+      throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+    }
+    return news;
+  }
+
+  //api
+  async create(body: CreateNewsDto): Promise<string> {
+    if (mockNews.find(({ id }) => id === body.id)) {
+      throw new HttpException(
+        `Document with provided id is exist`,
+        HttpStatus.CONFLICT,
+      );
+    }
+    mockNews.push(body);
+    return 'Created';
+  }
+
   async getAll(): Promise<Array<INews>> {
     return mockNews;
   }
 
   async getById(_id: number): Promise<INews> {
-    return mockNews.find(({ id }) => id === _id);
+    return await this.findById(_id);
   }
 
-  async create(body: INews): Promise<string> {
-    mockNews.push(body);
-    return 'Created';
-  }
+  async update(_id: number, body: UpdateNewsDto): Promise<INews> {
+    await this.findById(_id);
 
-  async update(_id: number, body: any): Promise<INews> {
     mockNews = mockNews.map<any>((cur) => {
       if (cur.id === _id) {
         return (cur = { ...cur, ...body });
@@ -42,7 +61,8 @@ export class NewsService {
     return this.getById(_id);
   }
 
-  delete(_id: number): string {
+  async delete(_id: number): Promise<string> {
+    await this.findById(_id);
     mockNews = mockNews.filter(({ id }) => id !== _id);
     return 'deleted';
   }
